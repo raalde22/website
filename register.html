@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
+</head>
+<body>
+  <!-- Header -->
+  <header style="background-color: #ffbc5c; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <img src="file.png" alt="Logo" style="width: 100px; height: 100px;">
+      <h1 style="color: #fff; font-size: 2.5em; margin: 0;">Fitness Tracker</h1>
+    </div>
+    <nav>
+      <ul style="display: flex; gap: 20px; list-style-type: none; padding: 0;">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="calorie-counter.html">Calorie Counter</a></li>
+        <li><a href="exercise-demonstrations.html">Exercise Demonstrations</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">Register</h2>
+
+    <!-- Registration Form -->
+    <div class="card p-4 shadow-sm mx-auto" style="max-width: 500px;">
+      <form id="registerForm">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+        </div>
+        <div class="mb-3">
+          <label for="confirmPassword" class="form-label">Confirm Password</label>
+         <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required> 
+        </div>
+        <div class="text-center">
+          <button type="button" class="btn btn-dark px-4 py-2" id="registerButton">Register</button>
+        </div>
+        
+      </form>
+    </div>
+  </div>
+
+  
+  <script type="module">
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+// Your Firebase config (already included in your HTML)
+const firebaseConfig = {
+  apiKey: "AIzaSyCubT25dQUjoBFc7XrVWG-vHOj5il56oMs",
+      authDomain: "fitness-d2328.firebaseapp.com",
+      projectId: "fitness-d2328",
+      storageBucket: "fitness-d2328.appspot.com",
+      messagingSenderId: "84121286486",
+      appId: "1:84121286486:web:8830ae5e92a943076a88f7",
+      measurementId: "G-NWML1CYWLT"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// Register event listener for the "Register" button
+document.getElementById('registerButton').addEventListener('click', () => {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+
+  // Simple form validation
+  if (password !== confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+
+  // Create user with email and password
+  createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      // Successfully registered
+      const user = userCredential.user;
+      alert("Registration successful! Welcome, " + user.email);
+      // Optionally redirect to another page or log in the user
+    })
+    .catch((error) => {
+      // Handle registration errors
+      console.error("Error:", error.message);
+      alert("Registration failed: " + error.message);
+    });
+});
+</script>
+</body>
+</html>
