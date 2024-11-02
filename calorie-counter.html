@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Calorie Counter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header style="background-color: #ffbc5c; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <img src="file.png" alt="Logo" style="width: 100px; height: 100px;">
+      <h1 style="color: #fff; font-size: 2.5em; margin: 0;">Fitness Tracker</h1>
+    </div>
+    <nav>
+      <ul style="display: flex; gap: 20px; list-style-type: none; padding: 0;" id="nav-links">
+        <li><a href="index.html" class="text-white">Home</a></li>
+        <li><a href="calorie-counter.html" class="text-white">Calorie Counter</a></li>
+        <li><a href="exercise-demonstrations.html" class="text-white">Exercise Demonstrations</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Calorie Counter</h1>
+
+    <div class="meal-form">
+      <form id="mealForm">
+        <label for="mealName">Meal Name</label>
+        <input type="text" id="mealName" placeholder="Enter meal name" required>
+        <label for="calories">Calories</label>
+        <input type="number" id="calories" placeholder="Enter calories" required>
+        <input type="submit" value="Add Meal">
+      </form>
+    </div>
+
+    <ul class="meal-list" id="mealList"></ul>
+
+    <div class="total-calories" id="totalCalories">
+      Total Calories: 0
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCubT25dQUjoBFc7XrVWG-vHOj5il56oMs",
+      authDomain: "fitness-d2328.firebaseapp.com",
+      projectId: "fitness-d2328",
+      storageBucket: "fitness-d2328.appspot.com",
+      messagingSenderId: "84121286486",
+      appId: "1:84121286486:web:8830ae5e92a943076a88f7",
+      measurementId: "G-NWML1CYWLT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Function to get UID from cookie
+    function getUidFromCookie() {
+      const name = "uid=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const cookies = decodedCookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i].trim();
+        if (cookie.indexOf(name) === 0) {
+          return cookie.substring(name.length, cookie.length);
+        }
+      }
+      return "";
+    }
+
+    const uid = getUidFromCookie(); // Get the UID from cookie
+
+    // Function to save meal data to Firestore under user's UID
+    async function saveMealToFirestore() {
+      const mealName = document.getElementById('mealName').value;
+      const calories = parseInt(document.getElementById('calories').value);
+
+      try {
+        await addDoc(collection(db, `users/${uid}/calories`), {
+          name: mealName,
+          calories: calories,
+          created_at: new Date()
+        });
+        console.log("Meal saved to Firestore!");
+      } catch (error) {
+        console.error("Error adding meal: ", error);
+      }
+    }
+
+    // Event listener for form submission
+    document.getElementById('mealForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      saveMealToFirestore();
+    });
+
+    // Real-time listener for calories collection for the authenticated user
+    const mealList = document.getElementById('mealList');
+    const totalCaloriesElement = document.getElementById('totalCalories');
+
+    onSnapshot(collection(db, `users/${uid}/calories`), (snapshot) => {
+      mealList.innerHTML = ""; // Clear the list before adding updated data
+      let totalCalories = 0;
+
+      snapshot.forEach((doc) => {
+        const meal = doc.data();
+        const mealItem = document.createElement('li');
+        mealItem.innerHTML = `<strong>${meal.name}</strong> - ${meal.calories} calories`;
+
+        mealList.appendChild(mealItem);
+        totalCalories += meal.calories;
+      });
+
+      totalCaloriesElement.innerText = `Total Calories: ${totalCalories}`;
+    });
+  </script>
+  <script>
+    // Function to get a cookie by name
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Function to delete the cookie
+    function deleteCookie(name) {
+      document.cookie = `${name}=; Max-Age=0; path=/;`;
+    }
+
+    // Determine user authentication status
+    const userUid = getCookie('uid');
+    const navLinks = document.getElementById('nav-links');
+
+    if (userUid) {
+      // User is logged in
+      const logoutItem = document.createElement('li');
+      logoutItem.innerHTML = `<a href="#" onclick="handleLogout()" class="text-white">Logout</a>`;
+      navLinks.appendChild(logoutItem);
+    } else {
+      // User is not logged in
+      const loginItem = document.createElement('li');
+      loginItem.innerHTML = `<a href="login.html" class="text-white">Login</a>`;
+      const registerItem = document.createElement('li');
+      registerItem.innerHTML = `<a href="register.html" class="text-white">Sign Up</a>`;
+      navLinks.appendChild(loginItem);
+      navLinks.appendChild(registerItem);
+    }
+
+    // Handle logout
+    function handleLogout() {
+      deleteCookie('uid');
+      window.location.reload(); // Reload the page to update navigation
+    }
+  </script>
+</body>
+</html>
